@@ -1,18 +1,37 @@
 module.exports = function() {
-    var client = './src/client/';
+    let client = './src/client/';
+    let clientApp = client + 'app/';
 
     var config = {
-
         temp: './.tmp/',
 
         //all js to vet task
-        alljs: [
-            './src/**/*.js',
-            './*.js'
+        alljs: ['./src/**/*.js', './*.js'],
+        client: client,
+        index: client + 'index.html',
+        js: [
+            clientApp + '**/*.module.js',
+            clientApp + '**/*.js',
+            '!' + clientApp + '**/*.spec.js'
         ],
 
-        less: client + 'styles/styles.less'
+        less: client + 'styles/styles.less',
         // less: `${client}styles/styles.less`
+
+        bower: {
+            json: require('./bower.json'),
+            directory: './bower_components/',
+            ignorePath: '../..'
+        }
+    };
+
+    config.getWiredepDefaultOptions = function() {
+        let options = {
+            bowerJson: config.bower.json,
+            directory: config.bower.directory,
+            ignorePath: config.bower.ignorePath
+        };
+        return options;
     };
 
     return config;

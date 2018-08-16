@@ -36,6 +36,7 @@ gulp.task('styles', ['clean-styles'], function() {
 
     return gulp
         .src(config.less)
+        .pipe($.plumber())
         .pipe($.less())
         .pipe($.autoprefixer({ browsers: ['last 2 version', '> 5%'] }))
         .pipe(gulp.dest(config.temp));
@@ -53,6 +54,17 @@ gulp.task('clean-styles', function() {
 gulp.task('less-watcher', function() {
     //watch the directory we specified from teh config, and then fire a task accordingly
     gulp.watch([config.less], ['styles']);
+});
+
+gulp.task('wiredep', function() {
+    let options = config.getWiredepDefaultOptions();
+    let wiredep = require('wiredep').stream;
+
+    return gulp
+        .src(config.index)
+        .pipe(wiredep(options))
+        .pipe($.inject(gulp.src(config.js)))
+        .pipe(gulp.dest(config.client));
 });
 
 // function clean(path, done) {
