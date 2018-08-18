@@ -4,6 +4,8 @@ var del = require('del');
 var config = require('./gulp.config')();
 //as it hasn't been executed yet, we tell it to execute so we can access its properties
 
+let port = process.env.PORT || config.defaultPort;
+
 // var jshint = require('gulp-jshint');
 // var jscs = require('gulp-jscs');
 // var util = require('gulp-util');
@@ -57,6 +59,7 @@ gulp.task('less-watcher', function() {
 });
 
 gulp.task('wiredep', function() {
+    log('wire up the bower css js and app js into our html');
     let options = config.getWiredepDefaultOptions();
     let wiredep = require('wiredep').stream;
 
@@ -65,6 +68,47 @@ gulp.task('wiredep', function() {
         .pipe(wiredep(options))
         .pipe($.inject(gulp.src(config.js)))
         .pipe(gulp.dest(config.client));
+});
+
+gulp.task('inject', ['wiredep', 'styles'], function() {
+    log('wire up the app css into our html, and call wiredep');
+
+    return gulp
+        .src(config.index)
+        .pipe($.inject(gulp.src(config.css)))
+        .pipe(gulp.dest(config.client));
+});
+
+gulp.task('serve-dev', ['inject'], function() {
+    let isDev = true;
+
+    let nodeOptions = {
+        script: config.nodeServer,
+        delayTime: 1,
+        env: {
+            PORT: port,
+            NODE_ENV: isDev ? 'dev' : 'build'
+        },
+        watch: [config.server]
+    };
+
+    return (
+        $.nodemon(nodeOptions)
+            // .on('restart', ['vet'], function(ev) {
+            .on('restart', function(ev) {
+                log('*** nodemon restarted ***');
+                log(`files changed on restart:\n ${ev}`);
+            })
+            .on('start', function() {
+                log('*** nodemon started ***');
+            })
+            .on('crash', function() {
+                log('*** nodemon crashed: script crashed for soem reason ***');
+            })
+            .on('exit', function() {
+                log('*** nodemon exited cleanly ***');
+            })
+    );
 });
 
 // function clean(path, done) {
