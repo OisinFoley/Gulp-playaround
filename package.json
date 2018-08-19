@@ -27,10 +27,12 @@
     "serve-favicon": "^2.0.1"
   },
   "devDependencies": {
+    "browser-sync": "^2.24.6",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^5.0.0",
     "gulp-if": "^2.0.2",
+    "gulp-imagemin": "^4.1.0",
     "gulp-inject": "^4.3.2",
     "gulp-jscs": "^4.1.0",
     "gulp-jshint": "^2.1.0",
@@ -39,6 +41,7 @@
     "gulp-nodemon": "^2.2.1",
     "gulp-plumber": "^1.2.0",
     "gulp-print": "^5.0.0",
+    "gulp-task-listing": "^1.1.0",
     "gulp-util": "^3.0.8",
     "jshint-stylish": "^2.2.1",
     "wiredep": "^4.0.0",

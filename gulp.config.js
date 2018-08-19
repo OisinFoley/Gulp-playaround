@@ -7,8 +7,11 @@ module.exports = function() {
     var config = {
         //all js to vet task
         alljs: ['./src/**/*.js', './*.js'],
+        build: './build/',
         client: client,
         css: temp + 'styles.css',
+        fonts: './bower_components/font-awesome/fonts/**/*.*',
+        images: client + 'images/**/*.*',
         index: client + 'index.html',
         js: [
             clientApp + '**/*.module.js',
@@ -20,6 +23,9 @@ module.exports = function() {
         // less: `${client}styles/styles.less`
         server: server,
         temp: './.tmp/',
+
+        /* browser sync */
+        browserReloadDelay: 1000,
 
         /*
             bower and npm locations
