@@ -93,6 +93,37 @@ gulp.task('clean-styles', function() {
     clean(files);
 });
 
+//gulp-angular-templatecache becomes $.angularTemplatecache due to 'gulp-load-plugins',
+// part of its functionality is to remove the need to specify 'gulp' at the start of the package being used
+//and it also remove dashes and camelises the name you provide
+gulp.task('templatecache', ['clean-code'], function() {
+    log('Creating AngularJs $templateCache');
+
+    return (
+        gulp
+            .src(config.htmltemplates)
+            //set to true means don't remove html tags with nothing inside
+            .pipe($.minifyHtml({ empty: true }))
+            .pipe(
+                $.angularTemplatecache(
+                    config.templateCache.file,
+                    config.templateCache.options
+                )
+            )
+            .pipe(gulp.dest(config.temp))
+    );
+});
+
+gulp.task('clean-code', function() {
+    var files = [].concat(
+        config.temp + '**/*.js',
+        config.build + '**/*.html',
+        config.build + 'js/*/*.js'
+    );
+
+    clean(files);
+});
+
 gulp.task('less-watcher', function() {
     //watch the directory we specified from teh config, and then fire a task accordingly
     gulp.watch([config.less], ['styles']);
