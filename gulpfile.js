@@ -3,6 +3,7 @@ var args = require('yargs').argv;
 var del = require('del');
 let browserSync = require('browser-sync');
 var config = require('./gulp.config')();
+
 //as it hasn't been executed yet, we tell it to execute so we can access its properties
 
 let port = process.env.PORT || config.defaultPort;
@@ -47,6 +48,7 @@ gulp.task('clean', function(done) {
 });
 
 gulp.task('clean-fonts', function(done) {
+    // clean(config.build + 'fonts/**/*.*', done);
     clean(config.build + 'fonts/**/*.*', done);
 });
 
@@ -141,13 +143,37 @@ gulp.task('wiredep', function() {
         .pipe(gulp.dest(config.client));
 });
 
-gulp.task('inject', ['wiredep', 'styles'], function() {
+gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
     log('wire up the app css into our html, and call wiredep');
 
     return gulp
         .src(config.index)
         .pipe($.inject(gulp.src(config.css)))
         .pipe(gulp.dest(config.client));
+});
+
+gulp.task('optimize', ['inject'], function() {
+    log('Optimising the css, js, html');
+
+    let assets = $.useref.assets({ searchPath: './' });
+    let templateCache = config.temp + config.templateCache.file;
+
+    return (
+        gulp
+            .src(config.index)
+            .pipe($.plumber())
+            .pipe(
+                $.inject(gulp.src(templateCache, { read: false }), {
+                    starttag: '<!-- inject:templates:js -->'
+                })
+            )
+            // inject the assets
+            .pipe(assets)
+            // then restore them to our html
+            .pipe(assets.restore())
+            .pipe($.useref())
+            .pipe(gulp.dest(config.build))
+    );
 });
 
 gulp.task('serve-dev', ['inject'], function() {

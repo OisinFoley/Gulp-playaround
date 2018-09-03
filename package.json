@@ -44,6 +44,7 @@
     "gulp-plumber": "^1.2.0",
     "gulp-print": "^5.0.0",
     "gulp-task-listing": "^1.1.0",
+    "gulp-useref": "^2.0.1",
     "gulp-util": "^3.0.8",
     "jshint-stylish": "^2.2.1",
     "wiredep": "^4.0.0",
