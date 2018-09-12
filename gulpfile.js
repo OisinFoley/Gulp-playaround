@@ -23,7 +23,11 @@ gulp.task('hello-world', function() {
 gulp.task('helper', $.taskListing);
 gulp.task('default', ['helper']);
 
-gulp.task('fonts', ['clean-fonts'], function() {
+// this is commented out because the dependency task is firing but it is not broadcasting when it has completed
+// we can re-visit this issue when course is over
+// gulp.task('fonts', ['clean-fonts'], function() {
+gulp.task('fonts', [], function() {
+  
     log('copying fonts');
 
     /* prettier-ignore */
@@ -32,7 +36,8 @@ gulp.task('fonts', ['clean-fonts'], function() {
         .pipe(gulp.dest(config.build + 'fonts'));
 });
 
-gulp.task('images', ['clean-images'], function() {
+// gulp.task('images', ['clean-images'], function() {
+gulp.task('images', [], function() {  
     log('copying and compressing images');
 
     return gulp
@@ -43,13 +48,15 @@ gulp.task('images', ['clean-images'], function() {
 
 gulp.task('clean', function(done) {
     let delConfig = [].concat(config.build, config.temp);
-    log(`Cleaning: ${$.util.colors.blue(delConfig)}`);
+    log(`Cleaning: ${$.util.colors.yellow(delConfig)}`);
     del(delConfig, done);
 });
 
 gulp.task('clean-fonts', function(done) {
     // clean(config.build + 'fonts/**/*.*', done);
+    log('hello1');
     clean(config.build + 'fonts/**/*.*', done);
+    log('hello2');
 });
 
 gulp.task('clean-images', function(done) {
@@ -176,70 +183,84 @@ gulp.task('optimize', ['inject'], function() {
     );
 });
 
+gulp.task('serve-build', ['optimize'], function() {
+  serve(false);
+})
+
 gulp.task('serve-dev', ['inject'], function() {
-    let isDev = true;
-
-    let nodeOptions = {
-        script: config.nodeServer,
-        delayTime: 1,
-        env: {
-            PORT: port,
-            NODE_ENV: isDev ? 'dev' : 'build'
-        },
-        watch: [config.server]
-    };
-
-    return (
-        $.nodemon(nodeOptions)
-            // .on('restart', ['vet'], function(ev) {
-            .on('restart', function(ev) {
-                log('*** nodemon restarted ***');
-                log(`files changed on restart:\n ${ev}`);
-                setTimeout(function() {
-                    browserSync.notify('reloading now ...');
-                    browserSync.reload({ stream: false });
-                }, config.browserReloadDelay);
-            })
-            .on('start', function() {
-                log('*** nodemon started ***');
-                startBrowserSync();
-            })
-            .on('crash', function() {
-                log('*** nodemon crashed: script crashed for soem reason ***');
-            })
-            .on('exit', function() {
-                log('*** nodemon exited cleanly ***');
-            })
-    );
+  serve(true);
 });
+
+function serve(isDev) {
+
+  let nodeOptions = {
+      script: config.nodeServer,
+      delayTime: 1,
+      env: {
+          PORT: port,
+          NODE_ENV: isDev ? 'dev' : 'build'
+      },
+      watch: [config.server]
+  };
+
+  return (
+      $.nodemon(nodeOptions)
+          // .on('restart', ['vet'], function(ev) {
+          .on('restart', function(ev) {
+              log('*** nodemon restarted ***');
+              log(`files changed on restart:\n ${ev}`);
+              setTimeout(function() {
+                  browserSync.notify('reloading now ...');
+                  browserSync.reload({ stream: false });
+              }, config.browserReloadDelay);
+          })
+          .on('start', function() {
+              log('*** nodemon started ***');
+              startBrowserSync(isDev);
+          })
+          .on('crash', function() {
+              log('*** nodemon crashed: script crashed for soem reason ***');
+          })
+          .on('exit', function() {
+              log('*** nodemon exited cleanly ***');
+          })
+  );
+}
 
 function changeEvent(event) {
     let srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
     log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
 }
 
-function startBrowserSync() {
+function startBrowserSync(isDev) {
     if (args.nosync || browserSync.active) {
         return;
     }
 
     log(`*****Starting browser sync on port: ${port}*****`);
 
-    /* prettier-ignore */
-    gulp.watch([config.less], ['styles'])
+    if (isDev) {
+      /* prettier-ignore */
+      gulp.watch([config.less], ['styles'])
         .on('change', function(event) { changeEvent(event); });
+    } else {
+      /* prettier-ignore */
+      gulp.watch([config.less, config.js, config.html], ['optimize', browserSync.reload])
+        .on('change', function(event) { changeEvent(event); });
+    }
+    
 
     let options = {
         // proxy: `localhost:${port}`,
         proxy: 'localhost:' + port,
         port: 3000,
-        files: [
+        files: isDev ? [
             config.client + '**/*.*',
             //we ignore less files because the watcher that appears earlier in this function is converting our less to css
             //like always, hence only watching css
             '!' + config.less,
             config.temp + '**/*.css'
-        ],
+        ] : [],
         ghostMode: {
             clicks: true,
             location: false,
