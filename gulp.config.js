@@ -24,7 +24,7 @@ module.exports = function() {
         less: client + 'styles/styles.less',
         // less: `${client}styles/styles.less`
         server: server,
-        temp: './.tmp/',
+        temp: temp,
 
         /*
             template cache

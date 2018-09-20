@@ -164,6 +164,8 @@ gulp.task('optimize', ['inject'], function() {
 
     let assets = $.useref.assets({ searchPath: './' });
     let templateCache = config.temp + config.templateCache.file;
+    let cssFilter = $.filter('**/*.css');
+    let jsFilter = $.filter('**/*.js');
 
     return (
         gulp
@@ -176,6 +178,12 @@ gulp.task('optimize', ['inject'], function() {
             )
             // inject the assets
             .pipe(assets)
+            .pipe(cssFilter)
+            .pipe($.csso())
+            .pipe(cssFilter.restore)
+            .pipe(jsFilter)
+            .pipe($.uglify())
+            .pipe(jsFilter.restore)
             // then restore them to our html
             .pipe(assets.restore())
             .pipe($.useref())
